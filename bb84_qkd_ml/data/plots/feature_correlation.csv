@@ -1,0 +1,4 @@
+Feature,QBER,BasisMatchRate,KeyLength
+QBER,1.000000,-0.037694,-0.037694
+BasisMatchRate,-0.037694,1.000000,1.000000
+KeyLength,-0.037694,1.000000,1.000000
