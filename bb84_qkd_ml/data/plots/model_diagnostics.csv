@@ -1,0 +1,5 @@
+Metric,Value
+TrainAccuracy,0.999714
+TestAccuracy,1.000000
+AccuracyGap,-0.000286
+FitStatus,balanced
