@@ -21,7 +21,6 @@ FEATURE_COLUMNS = [
     "LossRate",
     "ErrorVariance",
     "BurstErrorFrequency",
-    "InterceptRatio",
     "ChannelMuCh",
 ]
 

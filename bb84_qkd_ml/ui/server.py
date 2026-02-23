@@ -122,7 +122,6 @@ class Handler(SimpleHTTPRequestHandler):
                     metrics["loss_rate"],
                     metrics["error_variance"],
                     metrics["burst_error_frequency"],
-                    metrics["intercept_ratio"],
                     metrics["channel_mu_ch"],
                 ]
                 prediction = predict_label(features, weights, bias, means, stds)

@@ -59,7 +59,9 @@ def run_simulation(config: SimulationConfig) -> None:
 
         channel_mu_ch = rng.uniform(0.005, 0.06)
         loss_rate = rng.uniform(0.01, 0.2)
-        intercept_ratio = rng.uniform(0.45, 1.0) if eve_present else 0.0
+        # Keep intercept ratio non-deterministic across both classes to avoid label leakage.
+        # With Eve: generally higher ratio; without Eve: low background/noise ratio.
+        intercept_ratio = rng.uniform(0.35, 0.95) if eve_present else rng.uniform(0.0, 0.30)
 
         if eve_present:
             states = _intercept_with_ratio(states, intercept_ratio, rng)
