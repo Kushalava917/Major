@@ -4,12 +4,17 @@ from __future__ import annotations
 
 import csv
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Iterable, Sequence
+=======
+from typing import Sequence
+>>>>>>> codex/create-project-folder-structure-and-files
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = BASE_DIR / "data"
 FILE_PATH = DATA_DIR / "dataset.csv"
+<<<<<<< HEAD
 HEADER = ["QBER", "BasisMatchRate", "KeyLength", "Label"]
 
 
@@ -17,6 +22,23 @@ def init_csv() -> None:
     """Initialize dataset file with header if needed."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     if not FILE_PATH.exists() or FILE_PATH.stat().st_size == 0:
+=======
+HEADER = [
+    "QBER",
+    "LossRate",
+    "ErrorVariance",
+    "BurstErrorFrequency",
+    "InterceptRatio",
+    "ChannelMuCh",
+    "Label",
+]
+
+
+def init_csv(reset: bool = False) -> None:
+    """Initialize dataset file with header if needed."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    if reset or not FILE_PATH.exists() or FILE_PATH.stat().st_size == 0:
+>>>>>>> codex/create-project-folder-structure-and-files
         with FILE_PATH.open("w", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(HEADER)

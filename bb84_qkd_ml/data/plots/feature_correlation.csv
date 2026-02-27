@@ -1,4 +1,13 @@
+<<<<<<< HEAD
 Feature,QBER,BasisMatchRate,KeyLength
 QBER,1.000000,-0.037694,-0.037694
 BasisMatchRate,-0.037694,1.000000,1.000000
 KeyLength,-0.037694,1.000000,1.000000
+=======
+Feature,QBER,LossRate,ErrorVariance,BurstErrorFrequency,ChannelMuCh
+QBER,1.000000,0.250534,0.989723,0.837237,0.128970
+LossRate,0.250534,1.000000,0.268813,0.175805,-0.001143
+ErrorVariance,0.989723,0.268813,1.000000,0.793292,0.138806
+BurstErrorFrequency,0.837237,0.175805,0.793292,1.000000,0.081706
+ChannelMuCh,0.128970,-0.001143,0.138806,0.081706,1.000000
+>>>>>>> codex/create-project-folder-structure-and-files

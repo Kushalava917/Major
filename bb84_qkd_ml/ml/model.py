@@ -16,7 +16,17 @@ from typing import Iterable, List, Sequence, Tuple
 BASE_DIR = Path(__file__).resolve().parents[1]
 DATA_PATH = BASE_DIR / "data" / "dataset.csv"
 PLOTS_DIR = BASE_DIR / "data" / "plots"
+<<<<<<< HEAD
 FEATURE_COLUMNS = ["QBER", "BasisMatchRate", "KeyLength"]
+=======
+FEATURE_COLUMNS = [
+    "QBER",
+    "LossRate",
+    "ErrorVariance",
+    "BurstErrorFrequency",
+    "ChannelMuCh",
+]
+>>>>>>> codex/create-project-folder-structure-and-files
 
 
 def _ensure_plots_dir() -> None:
@@ -131,6 +141,35 @@ def _train_logistic_regression(
     return weights, bias
 
 
+<<<<<<< HEAD
+=======
+def train_model_from_dataset() -> Tuple[List[float], float, List[float], List[float]]:
+    """Train a model on the dataset and return weights, bias, means, and stds."""
+    if not DATA_PATH.exists() or DATA_PATH.stat().st_size == 0:
+        raise FileNotFoundError(f"Dataset not found or empty: {DATA_PATH}")
+
+    X, y = _read_dataset(DATA_PATH)
+    X_train, _, y_train, _ = _train_test_split_stratified(X, y, test_size=0.3, seed=42)
+
+    X_train_scaled, means, stds = _standardize(X_train)
+    weights, bias = _train_logistic_regression(X_train_scaled, y_train)
+    return weights, bias, means, stds
+
+
+def predict_label(
+    features: Sequence[float],
+    weights: Sequence[float],
+    bias: float,
+    means: Sequence[float],
+    stds: Sequence[float],
+) -> int:
+    """Predict a label for a single feature row."""
+    scaled = _apply_standardize([features], means, stds)[0]
+    prob = _predict_proba_row(weights, bias, scaled)
+    return 1 if prob >= 0.5 else 0
+
+
+>>>>>>> codex/create-project-folder-structure-and-files
 def _confusion_matrix(y_true: Sequence[int], y_pred: Sequence[int]) -> List[List[int]]:
     tn = fp = fn = tp = 0
     for truth, pred in zip(y_true, y_pred):
@@ -227,6 +266,104 @@ def _write_feature_correlation(X: Sequence[Sequence[float]], path: Path) -> None
             writer.writerow(row)
 
 
+<<<<<<< HEAD
+=======
+def _write_diagnostics(train_acc: float, test_acc: float, path: Path) -> None:
+    gap = train_acc - test_acc
+    status = "balanced"
+    if train_acc > 0.98 and test_acc < 0.90:
+        status = "overfitting_risk"
+    elif train_acc < 0.75 and test_acc < 0.75:
+        status = "underfitting_risk"
+
+    with path.open("w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["Metric", "Value"])
+        writer.writerow(["TrainAccuracy", f"{train_acc:.6f}"])
+        writer.writerow(["TestAccuracy", f"{test_acc:.6f}"])
+        writer.writerow(["AccuracyGap", f"{gap:.6f}"])
+        writer.writerow(["FitStatus", status])
+
+
+def _write_accuracy_bar_svg(train_acc: float, test_acc: float, path: Path) -> None:
+    max_h = 200
+    train_h = int(max_h * train_acc)
+    test_h = int(max_h * test_acc)
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="520" height="320">'
+        '<rect width="100%" height="100%" fill="#ffffff"/>'
+        '<text x="20" y="30" font-size="20" font-family="Arial">Train vs Test Accuracy</text>'
+        '<line x1="70" y1="250" x2="470" y2="250" stroke="#333"/>'
+        f'<rect x="140" y="{250-train_h}" width="90" height="{train_h}" fill="#3182ce"/>'
+        f'<rect x="300" y="{250-test_h}" width="90" height="{test_h}" fill="#38a169"/>'
+        '<text x="145" y="270" font-size="14" font-family="Arial">Train</text>'
+        '<text x="305" y="270" font-size="14" font-family="Arial">Test</text>'
+        f'<text x="145" y="{245-train_h}" font-size="12" font-family="Arial">{train_acc:.3f}</text>'
+        f'<text x="305" y="{245-test_h}" font-size="12" font-family="Arial">{test_acc:.3f}</text>'
+        '</svg>'
+    )
+    path.write_text(svg)
+
+
+def _write_feature_mean_bar_svg(X: Sequence[Sequence[float]], y: Sequence[int], path: Path) -> None:
+    stats = {0: [], 1: []}
+    for row, label in zip(X, y):
+        stats[label].append(row)
+
+    means0: List[float] = []
+    means1: List[float] = []
+    for idx in range(len(FEATURE_COLUMNS)):
+        v0 = [r[idx] for r in stats[0]]
+        v1 = [r[idx] for r in stats[1]]
+        means0.append(sum(v0) / len(v0) if v0 else 0.0)
+        means1.append(sum(v1) / len(v1) if v1 else 0.0)
+
+    max_val = max(means0 + means1) if (means0 or means1) else 1.0
+    max_val = max(max_val, 1e-9)
+    scale = 220 / max_val
+
+    parts = [
+        '<svg xmlns="http://www.w3.org/2000/svg" width="920" height="420">',
+        '<rect width="100%" height="100%" fill="#fff"/>',
+        '<text x="20" y="30" font-size="20" font-family="Arial">Feature Means by Label (Blue=No Eve, Red=Eve)</text>',
+        '<line x1="40" y1="330" x2="880" y2="330" stroke="#333"/>',
+    ]
+
+    x = 60
+    for idx, feature in enumerate(FEATURE_COLUMNS):
+        h0 = int(means0[idx] * scale)
+        h1 = int(means1[idx] * scale)
+        parts.append(f'<rect x="{x}" y="{330-h0}" width="24" height="{h0}" fill="#3182ce"/>')
+        parts.append(f'<rect x="{x+28}" y="{330-h1}" width="24" height="{h1}" fill="#e53e3e"/>')
+        parts.append(f'<text x="{x-5}" y="352" font-size="10" font-family="Arial">{feature}</text>')
+        x += 140
+
+    parts.append('</svg>')
+    path.write_text("".join(parts))
+
+
+def _write_roc_svg(curve: Sequence[Tuple[float, float]], path: Path) -> None:
+    points = []
+    for fpr, tpr in curve:
+        x = 40 + int(fpr * 340)
+        y = 380 - int(tpr * 340)
+        points.append(f"{x},{y}")
+
+    poly = " ".join(points) if points else "40,380"
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="420" height="420">'
+        '<rect width="100%" height="100%" fill="#fff"/>'
+        '<text x="20" y="25" font-size="18" font-family="Arial">ROC Curve</text>'
+        '<line x1="40" y1="380" x2="380" y2="380" stroke="#333"/>'
+        '<line x1="40" y1="380" x2="40" y2="40" stroke="#333"/>'
+        '<line x1="40" y1="380" x2="380" y2="40" stroke="#bbb" stroke-dasharray="4,4"/>'
+        f'<polyline fill="none" stroke="#2b6cb0" stroke-width="2" points="{poly}"/>'
+        '</svg>'
+    )
+    path.write_text(svg)
+
+
+>>>>>>> codex/create-project-folder-structure-and-files
 def train_and_evaluate() -> None:
     """Train a logistic regression model and report metrics/visualizations."""
     if not DATA_PATH.exists() or DATA_PATH.stat().st_size == 0:
@@ -243,6 +380,7 @@ def train_and_evaluate() -> None:
 
     weights, bias = _train_logistic_regression(X_train_scaled, y_train)
 
+<<<<<<< HEAD
     probs = [_predict_proba_row(weights, bias, row) for row in X_test_scaled]
     preds = [1 if p >= 0.5 else 0 for p in probs]
 
@@ -250,10 +388,34 @@ def train_and_evaluate() -> None:
     cm = _confusion_matrix(y_test, preds)
 
     print("Accuracy:", f"{accuracy:.4f}")
+=======
+    train_probs = [_predict_proba_row(weights, bias, row) for row in X_train_scaled]
+    train_preds = [1 if p >= 0.5 else 0 for p in train_probs]
+    probs = [_predict_proba_row(weights, bias, row) for row in X_test_scaled]
+    preds = [1 if p >= 0.5 else 0 for p in probs]
+
+    train_accuracy = _accuracy(y_train, train_preds)
+    accuracy = _accuracy(y_test, preds)
+    cm = _confusion_matrix(y_test, preds)
+
+    print("Train Accuracy:", f"{train_accuracy:.4f}")
+    print("Test Accuracy:", f"{accuracy:.4f}")
+>>>>>>> codex/create-project-folder-structure-and-files
     print("Confusion Matrix:\n", cm)
 
     _ensure_plots_dir()
     _write_confusion_matrix(cm, PLOTS_DIR / "confusion_matrix.csv")
+<<<<<<< HEAD
     _write_roc_curve(_roc_curve(y_test, probs), PLOTS_DIR / "roc_curve.csv")
     _write_feature_summary(X, y, PLOTS_DIR / "feature_summary.csv")
     _write_feature_correlation(X, PLOTS_DIR / "feature_correlation.csv")
+=======
+    roc = _roc_curve(y_test, probs)
+    _write_roc_curve(roc, PLOTS_DIR / "roc_curve.csv")
+    _write_feature_summary(X, y, PLOTS_DIR / "feature_summary.csv")
+    _write_feature_correlation(X, PLOTS_DIR / "feature_correlation.csv")
+    _write_diagnostics(train_accuracy, accuracy, PLOTS_DIR / "model_diagnostics.csv")
+    _write_accuracy_bar_svg(train_accuracy, accuracy, PLOTS_DIR / "accuracy_bar.svg")
+    _write_feature_mean_bar_svg(X, y, PLOTS_DIR / "feature_means_bar.svg")
+    _write_roc_svg(roc, PLOTS_DIR / "roc_curve.svg")
+>>>>>>> codex/create-project-folder-structure-and-files

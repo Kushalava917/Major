@@ -1,7 +1,20 @@
 Label,Feature,Mean,StdDev
+<<<<<<< HEAD
 0,QBER,0.000000,0.000000
 0,BasisMatchRate,0.500195,0.045754
 0,KeyLength,64.025000,5.856567
 1,QBER,0.252789,0.054614
 1,BasisMatchRate,0.497539,0.043309
 1,KeyLength,63.685000,5.543535
+=======
+0,QBER,0.081889,0.045325
+0,LossRate,0.105144,0.054823
+0,ErrorVariance,0.073129,0.037010
+0,BurstErrorFrequency,0.007441,0.012528
+0,ChannelMuCh,0.032361,0.015905
+1,QBER,0.217959,0.065545
+1,LossRate,0.105528,0.054822
+1,ErrorVariance,0.166157,0.036593
+1,BurstErrorFrequency,0.049374,0.036349
+1,ChannelMuCh,0.032210,0.015816
+>>>>>>> codex/create-project-folder-structure-and-files

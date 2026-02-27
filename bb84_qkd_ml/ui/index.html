@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BB84 QKD Eavesdropping Demo</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; background: #f7f7f9; color: #222; }
+    .card { background:#fff; padding:1.5rem; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,.08); margin-bottom:1.5rem; }
+    input,select,button { padding:.5rem; font-size:1rem; width:100%; max-width:320px; }
+    label { display:block; margin:.5rem 0 .25rem; }
+    button { margin-top:1rem; cursor:pointer; background:#2b6cb0; color:#fff; border:none; border-radius:6px; }
+    .grid { display:grid; gap:1rem; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
+    .metric { background:#edf2f7; padding:1rem; border-radius:8px; text-align:center; }
+    .metric span { display:block; font-size:1.2rem; font-weight:bold; }
+    .status { font-size:1.2rem; font-weight:bold; padding:.75rem; border-radius:6px; text-align:center; }
+    .safe { background:#c6f6d5; color:#22543d; }
+    .alert { background:#fed7d7; color:#742a2a; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>BB84 QKD Eavesdropping Demo</h1>
+    <p>Interactive simulation with required dataset features and live model prediction.</p>
+    <label for="bits">Bits per run</label>
+    <input id="bits" type="number" value="128" min="16" step="16" />
+    <label for="runs">Number of runs</label>
+    <input id="runs" type="number" value="50" min="1" step="1" />
+    <label for="mode">Eve mode</label>
+    <select id="mode">
+      <option value="never">Never (No Eve)</option>
+      <option value="always">Always (Eve present)</option>
+      <option value="alternate">Alternate</option>
+    </select>
+    <button id="run">Run Simulation</button>
+  </div>
+
+  <div class="card">
+    <h2>Results</h2>
+    <div id="status" class="status">Run a simulation to see results.</div>
+    <div class="grid">
+      <div class="metric">QBER<span id="qber">-</span></div>
+      <div class="metric">Loss Rate<span id="loss">-</span></div>
+      <div class="metric">Error Variance<span id="variance">-</span></div>
+      <div class="metric">Burst Error Frequency<span id="burst">-</span></div>
+      <div class="metric">Intercept Ratio<span id="intercept">-</span></div>
+      <div class="metric">Channel μch<span id="mu">-</span></div>
+      <div class="metric">Model Prediction<span id="pred">-</span></div>
+    </div>
+  </div>
+
+  <script>
+    const ids = {
+      qber: document.getElementById('qber'),
+      loss: document.getElementById('loss'),
+      variance: document.getElementById('variance'),
+      burst: document.getElementById('burst'),
+      intercept: document.getElementById('intercept'),
+      mu: document.getElementById('mu'),
+      pred: document.getElementById('pred'),
+      status: document.getElementById('status'),
+    };
+
+    document.getElementById('run').addEventListener('click', async () => {
+      ids.status.textContent = 'Running simulation...';
+      ids.status.className = 'status';
+
+      const bits = document.getElementById('bits').value;
+      const runs = document.getElementById('runs').value;
+      const mode = document.getElementById('mode').value;
+
+      const response = await fetch(`/api/run?bits=${bits}&runs=${runs}&mode=${mode}`);
+      const data = await response.json();
+
+      if (data.error) {
+        ids.status.textContent = data.error;
+        ids.status.className = 'status alert';
+        return;
+      }
+
+      const m = data.metrics;
+      ids.qber.textContent = m.qber.toFixed(4);
+      ids.loss.textContent = m.loss_rate.toFixed(4);
+      ids.variance.textContent = m.error_variance.toFixed(4);
+      ids.burst.textContent = m.burst_error_frequency.toFixed(4);
+      ids.intercept.textContent = m.intercept_ratio.toFixed(4);
+      ids.mu.textContent = m.channel_mu_ch.toFixed(4);
+      ids.pred.textContent = data.prediction === 1 ? 'Eavesdropping' : 'Secure';
+
+      ids.status.textContent = data.prediction === 1 ? 'Eavesdropping detected!' : 'No eavesdropping detected.';
+      ids.status.className = data.prediction === 1 ? 'status alert' : 'status safe';
+    });
+  </script>
+</body>
+</html>
